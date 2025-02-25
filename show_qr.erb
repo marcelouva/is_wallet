@@ -1,0 +1,8 @@
+<h2>Escanea este código QR en Google Authenticator</h2>
+<%= qr_svg %>
+
+<form action="/verify_totp" method="post">
+  <label>Ingrese el código generado:</label>
+  <input type="text" name="otp" required>
+  <button type="submit">Verificar</button>
+</form>

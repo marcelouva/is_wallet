@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Escanear Código QR</title>
+  <!-- Cargar la biblioteca html5-qrcode desde cdnjs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+  
+
+  </head>
+<body>
+  <h1>Escanear Código QR</h1>
+  <div id="reader" style="width:500px;"></div>
+  <form id="qr-form" action="/decode" method="post">
+    <input type="hidden" name="qr_content" id="qr-input">
+    <button type="submit" id="submit-btn" disabled>Enviar</button>
+  </form>
+
+  <script>
+    // Inicializar el escáner de QR
+    const html5QrCode = new Html5Qrcode("reader");
+
+    // Función que se ejecuta al detectar un código QR
+    function onScanSuccess(decodedText, decodedResult) {
+      // Mostrar mensaje de éxito
+      alert("Escaneo Ok");
+      // Asignar el texto decodificado al input oculto
+      document.getElementById('qr-input').value = decodedText;
+      // Habilitar el botón de envío
+      document.getElementById('submit-btn').disabled = false;
+    }
+
+    // Iniciar el escaneo con la cámara frontal
+    html5QrCode.start(
+      { facingMode: "user" }, // También puedes usar { facingMode: "environment" } para la cámara trasera
+      {
+        fps: 10, // Cuadros por segundo
+        qrbox: 250 // Tamaño del recuadro de escaneo
+      },
+      onScanSuccess
+    ).catch(err => {
+      console.error("Error al iniciar la cámara:", err);
+    });
+  </script>
+</body>
+</html>
