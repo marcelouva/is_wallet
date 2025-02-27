@@ -6,11 +6,24 @@ require 'zxing'
 require 'openssl'
 require 'base64'
 require 'rotp'
+require 'sinatra/activerecord'
+
+
+
+require 'bcrypt'
+require './config/database'
+
 
 set :sessions, true
-set :database, {adapter: "sqlite3", database: "db/development_wallet.sqlite3"}
+
+require_relative './config/database'  # Carga la base de datos antes de todo
+
+set :database, {adapter: "sqlite3", database: "db/development_is_wallet.sqlite3"}
 
 
+# Cargar modelos
+require './models/user'
+require './models/account'
 
 # Función para cifrar el contenido
 def encrypt_data(data, key)
@@ -158,6 +171,32 @@ end
 
 
 
+post '/users' do
+  # Obtener los parámetros de la solicitud
+  user_params = {
+    email: params[:email],
+    password_digest: BCrypt::Password.create(params[:password]),
+    full_name: params[:full_name],
+    phone_number: params[:phone_number],
+    is_verified: params[:is_verified] || false,
+    auth_token: SecureRandom.hex(16),  # Puedes generar un token o usar otro mecanismo
+    profile_picture_url: params[:profile_picture_url],
+    is_active: params[:is_active] || true,
+    dob: params[:dob] ? DateTime.parse(params[:dob]) : nil,
+    language_preference: params[:language_preference] || 'en'
+  }
+
+  # Crear el nuevo usuario
+  user = User.new(user_params)
+
+  if user.save
+    status 201  # Creación exitosa
+    user.to_json  # Puedes devolver la representación JSON del usuario
+  else
+    status 400  # Error al crear
+    { error: 'User could not be created' }.to_json
+  end
+end
 
 
 
