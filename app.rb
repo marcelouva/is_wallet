@@ -8,8 +8,8 @@ require 'base64'
 require 'rotp'
 require 'sinatra/activerecord'
 
-
-
+gem 'activerecord'
+gem 'rake'
 require 'bcrypt'
 require './config/database'
 
@@ -19,11 +19,16 @@ set :sessions, true
 require_relative './config/database'  # Carga la base de datos antes de todo
 
 set :database, {adapter: "sqlite3", database: "db/development_is_wallet.sqlite3"}
+set :public_folder, File.dirname(__FILE__) + '/public'
 
 
 # Cargar modelos
 require './models/user'
 require './models/account'
+
+
+enable :sessions
+
 
 # Función para cifrar el contenido
 def encrypt_data(data, key)
@@ -51,7 +56,7 @@ def decrypt_data(encrypted_data, key)
   data = Base64.decode64(encrypted_data)
   iv = data[0..15] # El primer bloque es el IV
   encrypted = data[16..-1]
-  
+
   decipher = OpenSSL::Cipher::AES.new(256, :CBC)
   decipher.decrypt
   decipher.key = key
@@ -75,9 +80,140 @@ end
 
 
 
-get '/' do
+get '/ss' do
   erb :index
 end
+
+
+get '/' do
+  erb :login
+end
+
+
+
+
+get '/dashboard' do
+  "Bienvenido a tu billetera virtual!"
+end
+
+
+
+post '/login' do
+  username = params[:username]
+  password = params[:password]
+
+  if username == 'admin' && password == 'password'
+    redirect '/dashboard'
+  else
+    @error = 'Usuario o contraseña incorrectos'
+    erb :login
+  end
+end
+
+get '/register' do
+  @profile_picture_url = "/images/user.png" # Imagen por defecto
+  erb :register
+end
+
+
+
+
+post '/register1' do
+  email = params[:email]
+  password = params[:password]
+  full_name = params[:full_name]
+  phone_number = params[:phone_number]
+  dob = params[:dob]
+  language_preference = params[:language_preference] || 'es'
+
+  # Hash de la contraseña
+  password_digest = BCrypt::Password.create(password)
+
+  # Guardar en la base de datos
+  user = User.create(
+    email: email,
+    password_digest: password_digest,
+    full_name: full_name,
+    phone_number: phone_number,
+    dob: dob,
+    language_preference: language_preference
+  )
+
+  if user.persisted?
+    redirect '/login'
+  else
+    @error = "Error al registrar usuario. Inténtalo de nuevo."
+    erb :registro
+  end
+end
+
+
+
+get '/registere' do
+  @profile_picture_url = "/images/user.png" # Imagen por defecto
+  erb :registro
+end
+
+post '/register' do
+  # Obtener los datos del formulario
+  email = params[:email]
+  password = params[:password]
+  full_name = params[:full_name]
+  phone_number = params[:phone_number]
+  dob = params[:dob]
+
+  # Manejar la imagen de perfil
+
+  if params[:profile_picture] && params[:profile_picture][:tempfile]
+    filename = params[:profile_picture][:filename]
+    filepath = "./uploads/profiles/#{filename}"  # Ruta donde se guardará la imagen
+    File.open(filepath, 'wb') do |f|
+      f.write(params[:profile_picture][:tempfile].read)
+    end
+    profile_picture_url = "/uploads/profiles/#{filename}"  # Ruta accesible desde la web
+  else
+    profile_picture_url = "/images/user.png"  # Imagen por defecto
+  end
+  puts "*******************************"
+  puts "URL: "+profile_picture_url
+  puts "*******************************"
+
+  # Guardar en la base de datos
+  user = User.new(
+    email: email,
+    password: password,  # Usar 'password', no 'password_digest'
+    full_name: full_name,
+    phone_number: phone_number,
+    dob: dob,
+    profile_picture_url: profile_picture_url
+  )
+
+  if user.save
+    redirect '/'
+  else
+    @error = "Hubo un error en el registro"
+    erb :register
+  end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 get '/scan' do
   erb :scan
@@ -197,8 +333,3 @@ post '/users' do
     { error: 'User could not be created' }.to_json
   end
 end
-
-
-
-
-

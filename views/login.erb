@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Billetera Virtual IS Wallet</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Container for centering login box */
+        .container {
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        /* Image styles */
+        img {
+            width: 80px;
+            margin-bottom: 20px;
+        }
+
+        /* Title Style */
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* IS Wallet Title */
+        .wallet-title {
+            font-size: 28px;
+            color: #3498db;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .wallet-title span {
+            font-size: 32px;
+            color: #2ecc71;
+        }
+
+        /* Error Message Style */
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        /* Form Styles */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        input {
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        button {
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Link Style */
+        .register-link {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 400px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="wallet-title">IS Wallet </h1> <!-- Título de la billetera con símbolo de peso -->
+        <img src="/images/dolar.png" alt="Billetera Virtual">
+        <h2>Iniciar sesión</h2>
+        <% if @error %>
+            <p class="error"><%= @error %></p>
+        <% end %>
+        <form action="/login" method="post">
+            <label for="username">Usuario</label>
+            <input type="text" id="username" name="username" required placeholder="Tu usuario">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" required placeholder="Tu contraseña">
+            <button type="submit">Ingresar</button>
+        </form>
+
+        <!-- Enlace para registro -->
+        <div class="register-link">
+            <p>¿Aún no tienes cuenta? <a href="/register">Regístrate aquí</a></p>
+        </div>
+    </div>
+</body>
+</html>

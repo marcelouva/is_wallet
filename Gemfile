@@ -8,12 +8,12 @@ gem 'sinatra-activerecord'
 gem 'sqlite3', '~> 1.4'
 gem 'rotp'
 
-gem 'bcrypt'
+gem 'bcrypt', require: 'bcrypt'
 
 
 gem 'rqrcode'
 gem 'quirc-rb'
-gem 'streamio-ffmpeg' 
+gem 'streamio-ffmpeg'
 gem 'mini_magick'
 gem 'zxing'
 
