@@ -162,21 +162,19 @@ post '/register' do
   phone_number = params[:phone_number]
   dob = params[:dob]
 
-  # Manejar la imagen de perfil
 
   if params[:profile_picture] && params[:profile_picture][:tempfile]
-    filename = params[:profile_picture][:filename]
+    filename = "img_profile_"+email+"."+File.extname(params[:profile_picture][:filename])
+
     filepath = "./uploads/profiles/#{filename}"  # Ruta donde se guardará la imagen
     File.open(filepath, 'wb') do |f|
       f.write(params[:profile_picture][:tempfile].read)
+
     end
     profile_picture_url = "/uploads/profiles/#{filename}"  # Ruta accesible desde la web
   else
     profile_picture_url = "/images/user.png"  # Imagen por defecto
   end
-  puts "*******************************"
-  puts "URL: "+profile_picture_url
-  puts "*******************************"
 
   # Guardar en la base de datos
   user = User.new(
