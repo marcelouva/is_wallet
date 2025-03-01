@@ -22,6 +22,15 @@ set :database, {adapter: "sqlite3", database: "db/development_is_wallet.sqlite3"
 set :public_folder, File.dirname(__FILE__) + '/public'
 
 
+# Middleware para verificar si el usuario está logueado
+before do
+  # Establecer una variable global para el usuario si está logueado
+  @current_user = User.find_by(id: session[:user_id]) if session[:user_id]
+end
+
+
+
+
 # Cargar modelos
 require './models/user'
 require './models/account'
@@ -85,7 +94,7 @@ get '/ss' do
 end
 
 
-get '/' do
+get '/login' do
   erb :login
 end
 
@@ -93,19 +102,32 @@ end
 
 
 get '/dashboard' do
-  "Bienvenido a tu billetera virtual!"
+  redirect '/login' unless @current_user  # Redirigir si no está logueado
+   "Bienvenido a tu billetera virtual!"
 end
 
+get '/logout' do
+  session.clear  # Elimina todos los datos de la sesión
+
+  redirect '/login'  # Redirige a la página de login
+end
 
 
 post '/login' do
   username = params[:username]
   password = params[:password]
+  user =  User.find_by(full_name: username)
+  if user && user.authenticate(password)
+    session[:user_id] = user.id  # Guarda el ID del usuario en la sesión
+    redirect '/dashboard'  # Redirige al usuario autenticado
 
-  if username == 'admin' && password == 'password'
-    redirect '/dashboard'
+
   else
-    @error = 'Usuario o contraseña incorrectos'
+
+  #if username == 'admin' && password == 'password'
+  #  redirect '/dashboard'
+  #else
+    @error = 'Usuario o contraseña incorrectos - eee'
     erb :login
   end
 end
@@ -118,41 +140,6 @@ end
 
 
 
-post '/register1' do
-  email = params[:email]
-  password = params[:password]
-  full_name = params[:full_name]
-  phone_number = params[:phone_number]
-  dob = params[:dob]
-  language_preference = params[:language_preference] || 'es'
-
-  # Hash de la contraseña
-  password_digest = BCrypt::Password.create(password)
-
-  # Guardar en la base de datos
-  user = User.create(
-    email: email,
-    password_digest: password_digest,
-    full_name: full_name,
-    phone_number: phone_number,
-    dob: dob,
-    language_preference: language_preference
-  )
-
-  if user.persisted?
-    redirect '/login'
-  else
-    @error = "Error al registrar usuario. Inténtalo de nuevo."
-    erb :registro
-  end
-end
-
-
-
-get '/registere' do
-  @profile_picture_url = "/images/user.png" # Imagen por defecto
-  erb :registro
-end
 
 post '/register' do
   # Obtener los datos del formulario
@@ -193,23 +180,6 @@ post '/register' do
     erb :register
   end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
