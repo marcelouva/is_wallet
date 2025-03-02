@@ -22,6 +22,11 @@ set :database, {adapter: "sqlite3", database: "db/development_is_wallet.sqlite3"
 set :public_folder, File.dirname(__FILE__) + '/public'
 
 
+
+
+
+
+
 # Middleware para verificar si el usuario está logueado
 before do
   # Establecer una variable global para el usuario si está logueado
@@ -103,7 +108,18 @@ end
 
 get '/dashboard' do
   redirect '/login' unless @current_user  # Redirigir si no está logueado
-   "Bienvenido a tu billetera virtual!"
+  # Seteo previo de las variables de instancia
+    @username = "UsuarioEjemplo"
+    @balance = 1000
+
+    @accounts = [
+      { name: "Cuenta Principal", cbu: "1234567890123456789012", alias: "mi.alias", bank: "Banco X", balance: 5000 },
+      { name: "Cuenta Ahorros", cbu: "9876543210987654321098", alias: "ahorros.cuenta", bank: "Banco Y", balance: 12000 }
+    ]
+
+
+  erb :dashboard
+
 end
 
 get '/logout' do

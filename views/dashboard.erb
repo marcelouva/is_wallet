@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - IS Wallet</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background-color: #3498db;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #ddd;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            margin: 0 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 6px 6px;
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+    <script>
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`#${tabName}`).classList.add('active');
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h2>IS Wallet</h2>
+        <div class="user-info">
+            <img src="/images/user.png" alt="Usuario">
+            <span><%= @username %></span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="wallet" onclick="openTab('wallet')">Mi Billetera</button>
+        <button class="tab" data-tab="accounts" onclick="openTab('accounts')">Mis Cuentas</button>
+    </div>
+
+    <div id="wallet" class="tab-content active">
+        <div class="balance">Saldo: $<%= @balance %></div>
+        <div class="buttons">
+            <button class="button">Enviar Dinero</button>
+            <button class="button">Recibir Dinero</button>
+            <button class="button">Ver Movimientos</button>
+            <button class="button">Agregar Fondos</button>
+            <button class="button">Retirar</button>
+        </div>
+    </div>
+
+    <div id="accounts" class="tab-content">
+        <h3>Mis Cuentas</h3>
+        <ul>
+            <% @accounts.each do |account| %>
+                <li><strong><%= account[:name] %></strong> - CVU/CBU: <%= account[:cbu] %>, Alias: <%= account[:alias] %>, Banco: <%= account[:bank] %>, Saldo: $<%= account[:balance] %></li>
+            <% end %>
+        </ul>
+        <h4>Agregar Nueva Cuenta</h4>
+        <div class="form-container">
+            <form action="/add_account" method="post">
+                <div class="form-group">
+                    <label for="name">Nombre de la cuenta</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="cbu">CVU o CBU</label>
+                    <input type="text" id="cbu" name="cbu" required>
+                </div>
+                <div class="form-group">
+                    <label for="alias">Alias</label>
+                    <input type="text" id="alias" name="alias" required>
+                </div>
+                <div class="form-group">
+                    <label for="bank">Banco</label>
+                    <input type="text" id="bank" name="bank" required>
+                </div>
+                <div class="form-group">
+                    <label for="balance">Saldo inicial</label>
+                    <input type="number" id="balance" name="balance" required>
+                </div>
+                <button type="submit">Agregar Cuenta</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
