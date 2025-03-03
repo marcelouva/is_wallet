@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - IS Wallet</title>
+    <title>Tu cuenta - IS Wallet</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -122,7 +122,7 @@
     </div>
 
     <div id="wallet" class="tab-content active">
-        <div class="balance">Saldo: $<%= @balance %></div>
+        <div class="balance">Saldsso: $<%= @balance %></div>
         <div class="buttons">
             <button class="button">Enviar Dinero</button>
             <button class="button">Recibir Dinero</button>
@@ -133,13 +133,14 @@
     </div>
 
     <div id="accounts" class="tab-content">
-        <h3>Mis Cuentas</h3>
-        <ul>
-            <% @accounts.each do |account| %>
-                <li><strong><%= account[:name] %></strong> - CVU/CBU: <%= account[:cbu] %>, Alias: <%= account[:alias] %>, Banco: <%= account[:bank] %>, Saldo: $<%= account[:balance] %></li>
-            <% end %>
-        </ul>
-        <h4>Agregar Nueva Cuenta</h4>
+        <% if @has_account == true %>
+        <h3>Mi Cuenta</h3>
+        <strong><%= @account[:name] %></strong> - CVU/CBU: <%= @account[:cbu] %>, Alias: <%= @account[:alias] %>, Banco: <%= @account[:bank] %>, Saldo: $<%= @account[:balance] %>
+        <p>
+
+        <% else %>
+
+        <h4>Agrega tu cuenta</h4>
         <div class="form-container">
             <form action="/add_account" method="post">
                 <div class="form-group">
@@ -165,6 +166,8 @@
                 <button type="submit">Agregar Cuenta</button>
             </form>
         </div>
+      <% end %>
+
     </div>
 </body>
 </html>

@@ -109,13 +109,12 @@ end
 get '/dashboard' do
   redirect '/login' unless @current_user  # Redirigir si no está logueado
   # Seteo previo de las variables de instancia
+
+
     @username = "UsuarioEjemplo"
     @balance = 1000
-
-    @accounts = [
-      { name: "Cuenta Principal", cbu: "1234567890123456789012", alias: "mi.alias", bank: "Banco X", balance: 5000 },
-      { name: "Cuenta Ahorros", cbu: "9876543210987654321098", alias: "ahorros.cuenta", bank: "Banco Y", balance: 12000 }
-    ]
+    @has_account = false 
+    @account = { name: "Cuenta Principal", cbu: "1234567890123456789012", alias: "mi.alias", bank: "Banco X", balance: 5000 }
 
 
   erb :dashboard
