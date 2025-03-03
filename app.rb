@@ -103,7 +103,33 @@ get '/login' do
   erb :login
 end
 
+post '/add_account' do
+  redirect '/login' unless @current_user  # Redirigir si no está logueado
 
+  if Account.find_by(cbu: params[:cbu])
+    flash[:error] = "Ya existe una cuenta con este CBU."
+    redirect '/dashboard'
+
+
+  else
+    account = Account.new(
+                user_id: @current_user.id,
+                bank_name: params[:bank],
+                cbu: params[:cbu],
+                alias: params[:alias],
+                balance: params[:balance],
+                currency: params[:currency]
+            )
+    if !account.save
+              flash[:error] = "Hubo un error al crear la cuenta: #{account.errors.full_messages.join(', ')}"
+    end
+    redirect '/dashboard'
+
+  end
+
+
+
+end
 
 
 get '/dashboard' do
@@ -111,11 +137,14 @@ get '/dashboard' do
   # Seteo previo de las variables de instancia
 
 
-    @username = "UsuarioEjemplo"
+    @username = @current_user.full_name
     @balance = 1000
-    @has_account = false 
-    @account = { name: "Cuenta Principal", cbu: "1234567890123456789012", alias: "mi.alias", bank: "Banco X", balance: 5000 }
+    @has_account = true
+    #@accounts = [{ bank_name: "Banco Nación", cbu: "1234567890123456789012", alias: "mi.alias", balance: 5000, currency="ARS" }]
+    @accounts = @current_user.accounts # Esto asume que tienes la relación has_many definida
 
+    # Si no tienes cuentas, puedes inicializar @accounts como un array vacío
+    @accounts = [] if @accounts.empty?
 
   erb :dashboard
 

@@ -134,40 +134,50 @@
 
     <div id="accounts" class="tab-content">
         <% if @has_account == true %>
-        <h3>Mi Cuenta</h3>
-        <strong><%= @account[:name] %></strong> - CVU/CBU: <%= @account[:cbu] %>, Alias: <%= @account[:alias] %>, Banco: <%= @account[:bank] %>, Saldo: $<%= @account[:balance] %>
-        <p>
+        <h3>Mis Cuentas</h3>
 
-        <% else %>
+          <% @accounts.each do |account| %>
+              <div class="account">
+                <strong>Banco: <%= account.bank_name %> - CVU/CBU: <%= account.cbu %> - Alias: <%= account.alias %> - Banco: <%= account.bank_name %> - Saldo: $<%= account.balance %> -  Moneda: $<%= account.currency %>
+              </div>
+              <p>
+          <% end %>
+        <% end %>
 
         <h4>Agrega tu cuenta</h4>
         <div class="form-container">
             <form action="/add_account" method="post">
-                <div class="form-group">
-                    <label for="name">Nombre de la cuenta</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
+              <div class="form-group">
+                  <label for="bank">Banco</label>
+                  <input type="text" id="bank" name="bank" required>
+              </div>
+
                 <div class="form-group">
                     <label for="cbu">CVU o CBU</label>
-                    <input type="text" id="cbu" name="cbu" required>
+                    <input type="text" id="cbu" name="cbu"
+
                 </div>
                 <div class="form-group">
                     <label for="alias">Alias</label>
                     <input type="text" id="alias" name="alias" required>
                 </div>
                 <div class="form-group">
-                    <label for="bank">Banco</label>
-                    <input type="text" id="bank" name="bank" required>
-                </div>
-                <div class="form-group">
                     <label for="balance">Saldo inicial</label>
                     <input type="number" id="balance" name="balance" required>
                 </div>
+
+                <div class="form-group">
+                    <label for="currency">Moneda</label>
+                    <select id="currency" name="currency" required>
+                        <option value="ARS">ARS (Pesos Argentinos)</option>
+                        <option value="USD">USD (Dólar Estadounidense)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                        <option value="BRL">BRL (Real Brasileño)</option>
+                    </select>
+                </div>
+
+
+
                 <button type="submit">Agregar Cuenta</button>
             </form>
         </div>
-      <% end %>
-
-    </div>
-</body>
-</html>
