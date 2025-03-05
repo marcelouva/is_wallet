@@ -7,6 +7,7 @@ gem 'activesupport', '6.1.7'
 gem 'sinatra-activerecord'
 gem 'sqlite3', '~> 1.4'
 gem 'rotp'
+gem 'sinatra-flash'
 
 gem 'bcrypt', require: 'bcrypt'
 

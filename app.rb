@@ -7,9 +7,10 @@ require 'openssl'
 require 'base64'
 require 'rotp'
 require 'sinatra/activerecord'
+require 'json'
 
-gem 'activerecord'
-gem 'rake'
+require 'sinatra/flash'
+
 require 'bcrypt'
 require './config/database'
 
@@ -39,7 +40,7 @@ end
 # Cargar modelos
 require './models/user'
 require './models/account'
-
+require './models/transaction'
 
 enable :sessions
 
@@ -117,18 +118,79 @@ post '/add_account' do
                 bank_name: params[:bank],
                 cbu: params[:cbu],
                 alias: params[:alias],
-                balance: params[:balance],
+                balance: params[:balance].present? ? params[:balance].to_d : 0.0,
                 currency: params[:currency]
             )
     if !account.save
-              flash[:error] = "Hubo un error al crear la cuenta: #{account.errors.full_messages.join(', ')}"
+              puts "error al crear la cuenta #{account.errors.full_messages}"
+              #flash[:error] = "Hubo un error al crear la cuenta: #{account.errors.full_messages.join(', ')}"
     end
     redirect '/dashboard'
 
   end
+end
+
+
+post '/perform_transaction' do
+  redirect '/login' unless @current_user  # Redirigir si no está logueado
+  source_account = Account.find_by(id: params[:account])
+  destination_account = Account.find_by(cbu: params[:cbu])
+  puts ">>>> "+params[:action] +"<<<<<<<<<<<<"
+  case
+    when "send_money"
+      motivo = params[:reason]  # Motivo de la transferencia
+      monto = params[:amount].to_f  # Monto convertido a número
+      transaction = Transaction.new(
+         origin_account: source_account,
+         destination_account: destination_account,
+         amount: monto,
+         reason: motivo
+      )
+
+      if transaction.save  # Guarda la transacción en la base de datos
+         source_account.balance -= monto # le resta el monto a la cuenta origen
+         source_account.save
+         destination_account.balance += monto
+         destination_account.save
+        puts "Transacción creada exitosamente"
+      else
+        puts "Error al crear la transacción: #{transaction.errors.full_messages}"
+      end
 
 
 
+
+    else
+                puts "otras opciomes"
+  end
+
+
+
+end
+
+
+
+get '/get_account_info' do
+  content_type :json
+  cbu = params[:cbu]
+
+  puts "--------------------------"
+  puts "Consulta de CBU/Alias: #{cbu}"
+  puts "--------------------------"
+
+  # Buscar cuenta en la base de datos por CBU o Alias
+  account = Account.find_by("cbu = ? OR alias = ?", cbu, cbu)
+
+  if account
+    {
+      success: true,
+      bank_name: account.bank_name,
+      currency: account.currency,
+      full_name: account.user.full_name # Asegurar que user está relacionado
+    }.to_json
+  else
+    { success: false, message: "Cuenta no encontrada" }.to_json
+  end
 end
 
 
@@ -145,7 +207,6 @@ get '/dashboard' do
 
     # Si no tienes cuentas, puedes inicializar @accounts como un array vacío
     @accounts = [] if @accounts.empty?
-
   erb :dashboard
 
 end
@@ -218,7 +279,7 @@ post '/register' do
   )
 
   if user.save
-    redirect '/'
+    redirect '/login'
   else
     @error = "Hubo un error en el registro"
     erb :register

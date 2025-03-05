@@ -29,6 +29,11 @@
             align-items: center;
         }
 
+        .form-row {
+            display: flex;
+            gap: 20px; /* Espacio entre los elementos */
+        }
+
         .user-info img {
             width: 40px;
             height: 40px;
@@ -85,7 +90,7 @@
             font-weight: bold;
         }
 
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
@@ -97,13 +102,52 @@
             flex-direction: column;
             align-items: center;
         }
+
+        button.button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button.button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button.button:active {
+            background-color: #1f6d8c;
+            transform: translateY(0);
+        }
+
+        button.button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        #transferFields {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
+
     <script>
         function openTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelector(`#${tabName}`).classList.add('active');
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        function toggleTransferFields() {
+            let transferFields = document.getElementById('transferFields');
+            transferFields.style.display = (transferFields.style.display === 'none' || transferFields.style.display === '') ? 'block' : 'none';
         }
     </script>
 </head>
@@ -122,62 +166,134 @@
     </div>
 
     <div id="wallet" class="tab-content active">
-        <div class="balance">Saldsso: $<%= @balance %></div>
-        <div class="buttons">
-            <button class="button">Enviar Dinero</button>
-            <button class="button">Recibir Dinero</button>
-            <button class="button">Ver Movimientos</button>
-            <button class="button">Agregar Fondos</button>
-            <button class="button">Retirar</button>
-        </div>
+        <form action="/perform_transaction" method="post">
+            <div class="form-group">
+                <label for="account">Selecciona una cuenta</label>
+                <select id="account" name="account" required>
+                    <% @accounts.each do |account| %>
+                        <option value="<%= account.id %>">
+                            <%= account.bank_name %> - <%= account.cbu %> - <%= account.balance %>- <%= account.currency %>
+                        </option>
+                    <% end %>
+                </select>
+            </div>
+
+            <div class="buttons">
+                <button type="button" class="button" onclick="toggleTransferFields()">Transferir</button>
+                <button type="submit" name="action" value="view_transactions" class="button">Ver Movimientos</button>
+                <button type="submit" name="action" value="qr_payment" class="button">Pago con QR</button>
+            </div>
+
+            <div id="transferFields">
+              <div class="form-group">
+                  <label for="cbu">CVU o CBU</label>
+                  <input type="text" id="cbu" name="cbu" required onblur="fetchAccountDetails()">
+              </div>
+              <div id="account-info" style="display: none; margin-top: 10px;">
+                  <p><strong>Banco:</strong> <span id="bank-name"></span></p>
+                  <p><strong>Titular:</strong> <span id="account-owner"></span></p>
+                  <p><strong>Moneda:</strong> <span id="account-currency"></span></p>
+              </div>
+
+              <script>
+                function fetchAccountDetails() {
+                    const cbu = document.getElementById("cbu").value.trim();
+                    console.log("Consultando CBU/Alias:", cbu);
+                    if (cbu.length < 2) return; // Esperar hasta que haya al menos 2 caracteres
+                     fetch(`/get_account_info?cbu=${encodeURIComponent(cbu)}`)
+                      .then(response => response.json())
+                      .then(data => {
+                        console.log("Respuesta del servidor:", data);
+                        if (data.success) {
+                          document.getElementById("bank-name").textContent = data.bank_name;
+                          document.getElementById("account-owner").textContent = data.full_name;
+                          document.getElementById("account-currency").textContent = data.currency;
+
+                          document.getElementById("account-info").style.display = "block";
+                        } else {
+                          document.getElementById("account-info").style.display = "none";
+                          alert("Cuenta no encontrada.");
+                        }
+                      })
+                      .catch(error => {
+                          console.error("Error al obtener la información de la cuenta:", error);
+                          alert("Hubo un error al consultar la cuenta.");
+                        });
+                  }
+                </script>
+
+
+
+                <div class="form-group">
+                    <label for="reason">Motivo</label>
+                    <input type="text" id="reason" name="reason" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Monto</label>
+                    <input type="number" id="amount" name="amount" required>
+                </div>
+
+                <button type="submit" name="action" value="send_money" class="button">Confirmar Transferencia</button>
+            </div>
+        </form>
     </div>
 
-    <div id="accounts" class="tab-content">
-        <% if @has_account == true %>
-        <h3>Mis Cuentas</h3>
 
-          <% @accounts.each do |account| %>
-              <div class="account">
-                <strong>Banco: <%= account.bank_name %> - CVU/CBU: <%= account.cbu %> - Alias: <%= account.alias %> - Banco: <%= account.bank_name %> - Saldo: $<%= account.balance %> -  Moneda: $<%= account.currency %>
-              </div>
-              <p>
-          <% end %>
+
+
+    <div id="accounts" class="tab-content"  style="width: 80%;" >
+        <% if @has_account %>
+            <h3>Mis Cuentas</h3>
+            <% @accounts.each do |account| %>
+                <div class="account">
+                    <strong>Banco:</strong> <%= account.bank_name %> - <strong>CVU/CBU:
+                    </strong> <%= account.cbu %> - <strong>Alias:</strong> <%= account.alias %> -
+                    <strong>Saldo:</strong> $<%= account.balance %> - <strong>Moneda:</strong> <%= account.currency %>
+                </div>
+                <hr>
+            <% end %>
         <% end %>
 
         <h4>Agrega tu cuenta</h4>
-        <div class="form-container">
-            <form action="/add_account" method="post">
-              <div class="form-group">
-                  <label for="bank">Banco</label>
-                  <input type="text" id="bank" name="bank" required>
-              </div>
+        <form action="/add_account" method="post">
+          <div class="form-row" >
+            <div class="form-group"  style="width: 50%;">
+              <label for="bank">Banco</label>
+              <input type="text" id="bank" name="bank" required>
+            </div>
 
-                <div class="form-group">
-                    <label for="cbu">CVU o CBU</label>
-                    <input type="text" id="cbu" name="cbu"
+            <div class="form-group" style="width: 50%;">
+              <label for="cbu">CVU o CBU</label>
+              <input type="text" id="cbu" name="cbu" required>
+            </div>
+          </div>
 
-                </div>
-                <div class="form-group">
-                    <label for="alias">Alias</label>
-                    <input type="text" id="alias" name="alias" required>
-                </div>
-                <div class="form-group">
-                    <label for="balance">Saldo inicial</label>
-                    <input type="number" id="balance" name="balance" required>
-                </div>
+          <div class="form-row" >
 
-                <div class="form-group">
-                    <label for="currency">Moneda</label>
-                    <select id="currency" name="currency" required>
-                        <option value="ARS">ARS (Pesos Argentinos)</option>
-                        <option value="USD">USD (Dólar Estadounidense)</option>
-                        <option value="EUR">EUR (Euro)</option>
-                        <option value="BRL">BRL (Real Brasileño)</option>
-                    </select>
-                </div>
+            <div class="form-group" style="width: 50%;">
+                <label for="alias">Alias:</label>
+                <input type="text" id="alias" name="alias" required>
+            </div>
+
+              <div class="form-group" style="width: 50%;">
+            <label for="currency">Moneda:</label>
+              <select id="currency" name="currency" required>
+                <option value="ARS">ARS</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+             </div>
+           </div>
+
+            <div class="form-group" style="width: 30%;">
+                <label for="balance">Saldo:</label>
+                <input type="text" id="balance" name="balance" required>
+            </div>
 
 
-
-                <button type="submit">Agregar Cuenta</button>
-            </form>
-        </div>
+            <button type="submit" class="button">Agregar Cuenta</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -45,6 +45,7 @@ ActiveRecord::Schema.define(version: 2025_03_03_194729) do
     t.string "profile_picture_url"
     t.boolean "is_active", default: true
     t.datetime "dob"
+    t.string "language_preference", default: "en"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
